@@ -1,0 +1,19 @@
+kafka:
+  # flag for kafka broker
+  enabled: true
+  # kafka brokers list
+  hosts: KAFKA_BROKERS_LIST
+  # sasl options
+  sasl:
+    # sasl mechanism
+    mechanism: scram-sha-512
+    # secret id for sasl/scram
+    secretId: fakesecret
+  # client id of the producer
+  clientId: sd-producer
+  # Amazon access key
+  accessKeyId: KAFKA_ACCESS_KEY_ID
+  # Amazon secret access key
+  secretAccessKey: KAFKA_ACCESS_KEY_SECRET
+  # AWS region 
+  region: AWS_REGION

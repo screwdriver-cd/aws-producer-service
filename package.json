@@ -1,0 +1,37 @@
+{
+  "name": "sd-aws-producer-service",
+  "version": "1.0.0",
+  "description": "Screwdriver AWS Integration Producer Service",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/screwdriver-cd/aws-producer-service.git"
+  },
+  "homepage": "https://github.com/screwdriver-cd/aws-producer-service#readme",
+  "keywords": [
+    "screwdriver",
+    "yahoo"
+  ],
+  "author": "Pritam Paul <pritamstyz4ever@gmail.com>",
+  "license": "BSD-3-Clause",
+  "contributors": [],
+  "bugs": {
+    "url": "https://github.com/screwdriver-cd/screwdriver/issues"
+  },
+  "release": {
+    "debug": false,
+    "verifyConditions": {
+      "path": "./node_modules/semantic-release/src/lib/plugin-noop.js"
+    }
+  },
+  "dependencies": {
+    "@aws-sdk/client-secrets-manager": "^3.34.0",
+    "config": "^3.3.6",
+    "kafkajs": "^1.15.0",
+    "screwdriver-logger": "^1.1.0"
+  }
+}
