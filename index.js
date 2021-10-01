@@ -8,25 +8,25 @@ const kafkaConfig = config.get('kafka');
 
 /**
  * Gets the secret value from SecretsManager
- * @param {Object} config the config object
+ * @param {Object} _config the config object
  * @returns secret object
  */
-const getSecretsValue = async (config) => {
+const getSecretsValue = async _config => {
     try {
         const clientConfig = {
-            region: config.region,
+            region: _config.region,
             credentials: {
-                accessKeyId: config.accessKeyId,
-                secretAccessKey: config.secretAccessKey
+                accessKeyId: _config.accessKeyId,
+                secretAccessKey: _config.secretAccessKey
             }
-        }
+        };
 
-        if (config.sessionToken) {
-            clientConfig.sessionToken = config.sessionToken;
+        if (_config.sessionToken) {
+            clientConfig.sessionToken = _config.sessionToken;
         }
 
         const client = new SecretsManagerClient(clientConfig);
-        const command = new GetSecretValueCommand({ SecretId: config.sasl.secretId });
+        const command = new GetSecretValueCommand({ SecretId: _config.sasl.secretId });
         const data = await client.send(command);
 
         if ('SecretString' in data) {
@@ -45,9 +45,9 @@ const getSecretsValue = async (config) => {
 const errorTypes = ['unhandledRejection', 'uncaughtException'];
 const signalTraps = ['SIGTERM', 'SIGINT', 'SIGUSR2'];
 
-const createMessage = buildConfig => ({
-    key: `key-${buildConfig.buildId}`,
-    value: JSON.stringify(buildConfig)
+const createMessage = msg => ({
+    key: `key-${msg.buildConfig.buildId}`,
+    value: JSON.stringify(msg)
 });
 
 let producer;
@@ -66,7 +66,7 @@ const connect = async () => {
     const secretsStr = await getSecretsValue(kafkaConfig);
 
     const secrets = JSON.parse(secretsStr);
-    const brokersList = kafkaConfig.hosts.split(",");
+    const brokersList = kafkaConfig.hosts.split(',');
 
     const kafka = new Kafka({
         logLevel: logLevel.ERROR,
@@ -122,17 +122,18 @@ const connect = async () => {
  * @param {String} topic the topic name
  */
 const sendMessage = async (data, topic) => {
+    const { job, buildConfig } = data;
     // after the produce has connected, we start start sending messages
+
     try {
-        const { job, buildConfig } = data;
-        logger.info('publishing msg %s, to kafka topic: %s', job, buildConfig.buildId, topic);
+        logger.info(`publishing msg ${job}:${buildConfig.buildId} to kafka topic:${topic}`);
         await producer.send({
             topic,
             compression: CompressionTypes.GZIP,
             acks: 1,
             messages: [createMessage(data)]
         });
-        logger.info('successfully published msg id %s -> topic %s', job, buildConfig.buildId, topic);
+        logger.info(`successfully published msg id ${job}:${buildConfig.buildId} -> topic ${topic}`);
     } catch (e) {
         logger.error(`Publishing message ${buildConfig.buildId} to topic ${topic} failed ${e.message}`);
     }
