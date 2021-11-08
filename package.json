@@ -28,7 +28,10 @@
     "debug": false,
     "verifyConditions": {
       "path": "./node_modules/semantic-release/src/lib/plugin-noop.js"
-    }
+    },
+    "branches": [
+      "main"
+    ]
   },
   "dependencies": {
     "@aws-sdk/client-secrets-manager": "^3.34.0",
