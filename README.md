@@ -3,8 +3,7 @@ Screwdriver AWS Integration Producer Service
 [![Version][npm-image]][npm-url] ![Downloads][downloads-image] [![Build Status][status-image]][status-url] [![Open Issues][issues-image]][issues-url] ![License][license-image]
 > Producer Service for Screwdriver Kafka Queue
 
-This service acts as a message producer to Screwdriver Kafka Queue.
-
+This service acts as a message producer and provides and interface to publish messages to Screwdriver Kafka Instance.
 
 ## Table of Contents
 - [Installation and Usage](#installation-and-usage)
@@ -17,7 +16,7 @@ This service acts as a message producer to Screwdriver Kafka Queue.
 ### Installation and Usage
 
 ```bash
-npm install sd-aws-producer-service
+npm install screwdriver-aws-producer-service
 ```
 ## Configuration
 The configuration for the package
@@ -84,8 +83,8 @@ To start contributing to Screwdriver, have a look at our guidelines, as well as 
 
 Code licensed under the BSD 3-Clause license. See LICENSE file for terms.
 
-[npm-image]: https://img.shields.io/npm/v/sd-aws-producer-service.svg
-[npm-url]: https://npmjs.org/package/sd-aws-producer-service
+[npm-image]: https://img.shields.io/npm/v/screwdriver-aws-producer-service.svg
+[npm-url]: https://npmjs.org/package/screwdriver-aws-producer-service
 [downloads-image]: https://img.shields.io/npm/dt/aws-producer-service.svg
 [license-image]: https://img.shields.io/npm/l/aws-producer-service.svg
 [issues-image]: https://img.shields.io/github/issues/screwdriver-cd/screwdriver.svg
