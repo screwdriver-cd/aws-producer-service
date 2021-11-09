@@ -1,5 +1,5 @@
 {
-  "name": "sd-aws-producer-service",
+  "name": "screwdriver-aws-producer-service",
   "version": "1.0.0",
   "description": "Screwdriver AWS Integration Producer Service",
   "main": "index.js",
