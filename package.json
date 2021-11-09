@@ -1,7 +1,7 @@
 {
   "name": "screwdriver-aws-producer-service",
   "version": "1.0.0",
-  "description": "Screwdriver AWS Integration Producer Service",
+  "description": "Screwdriver AWS Integration Producer Service to publish messages",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

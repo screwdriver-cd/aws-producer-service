@@ -3,8 +3,7 @@ Screwdriver AWS Integration Producer Service
 [![Version][npm-image]][npm-url] ![Downloads][downloads-image] [![Build Status][status-image]][status-url] [![Open Issues][issues-image]][issues-url] ![License][license-image]
 > Producer Service for Screwdriver Kafka Queue
 
-This service acts as a message producer to Screwdriver Kafka Queue.
-
+This service acts as a message producer and provides and interface to publish messages to Screwdriver Kafka Instance.
 
 ## Table of Contents
 - [Installation and Usage](#installation-and-usage)
