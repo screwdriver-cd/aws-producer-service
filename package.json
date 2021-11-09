@@ -26,9 +26,6 @@
   },
   "release": {
     "debug": false,
-    "verifyConditions": {
-      "path": "./node_modules/semantic-release/src/lib/plugin-noop.js"
-    },
     "branches": [
       "main"
     ]
