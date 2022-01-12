@@ -29,6 +29,15 @@ describe('index', () => {
             return {
                 producer: () => {
                     return { connect: sinon.stub(), send: sinon.stub() };
+                },
+                admin: () => {
+                    return {
+                        connect: sinon.stub().resolves(),
+                        createTopics: sinon.stub().resolves(),
+                        listTopics: sinon.stub().returns([]),
+                        fetchTopicMetadata: sinon.stub().returns(),
+                        disconnect: sinon.stub().resolves()
+                    };
                 }
             };
         }
@@ -46,11 +55,11 @@ describe('index', () => {
             hosts: 'b-3.abcd:9096,b-2.abcd:9096,b-1.abcd:9096',
             sasl: {
                 mechanism: 'scram-sha-512',
-                secretId: 'fakesecret'
+                secretId: 'fakeSecret'
             },
             clientId: 'sd-producer',
-            accessKeyId: 'sasafsaf',
-            secretAccessKey: 'safsafsaf',
+            accessKeyId: 'testAccessKeyId',
+            secretAccessKey: 'testSecretAccessKey',
             region: 'us-west-2'
         };
 
@@ -101,8 +110,15 @@ describe('index', () => {
             assert.calledOnce(producer.connect);
         });
     });
-    describe('sendMessage', () => {
+    describe('connect-use config from params', () => {
         it('connects to a kafka instance as a consumer', async () => {
+            const producer = await index.connect(false, { enabled: false });
+
+            assert.isNull(producer);
+        });
+    });
+    describe('sendMessage', () => {
+        it('sends a message to a kafka instance as a consumer', async () => {
             const producer = await index.connect();
             const msg = { buildConfig: { buildId: 123 }, job: 'start' };
 
@@ -110,6 +126,36 @@ describe('index', () => {
 
             assert.calledOnce(producer.connect);
             assert.calledOnce(producer.send);
+        });
+    });
+    describe('connectAdmin', () => {
+        it('connects to a kafka instance as an admin', async () => {
+            const admin = await index.connectAdmin();
+
+            assert.isNotNull(admin);
+            assert.calledOnce(admin.connect);
+        });
+    });
+    describe('createTopic', () => {
+        it('creates a topic in kafka instance as an admin', async () => {
+            const admin = await index.connectAdmin();
+
+            await index.createTopic(admin, topicName);
+
+            assert.calledOnce(admin.connect);
+            assert.calledOnce(admin.createTopics);
+            assert.calledOnce(admin.disconnect);
+        });
+    });
+    describe('getTopicMetadata', () => {
+        it('gets a topic metadata from kafka instance as an admin', async () => {
+            const admin = await index.connectAdmin();
+
+            await index.getTopicMetadata(admin, topicName);
+
+            assert.calledOnce(admin.connect);
+            assert.calledOnce(admin.fetchTopicMetadata);
+            assert.calledOnce(admin.disconnect);
         });
     });
 });
