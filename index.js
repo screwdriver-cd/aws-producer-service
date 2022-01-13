@@ -88,9 +88,6 @@ const connect = async () => {
 
     try {
         const producer = kafka.producer();
-
-        await producer.connect();
-
         const { DISCONNECT, CONNECT } = producer.events;
 
         producer.on(CONNECT, e => logger.info(`kafka Broker connected ${e.timestamp}: ${e}`));
@@ -119,6 +116,8 @@ const connect = async () => {
                 }
             });
         });
+
+        await producer.connect();
 
         return producer;
     } catch (err) {
@@ -163,9 +162,6 @@ const connectAdmin = async () => {
     const kafka = await getKafkaObject();
 
     const admin = kafka.admin();
-
-    await admin.connect();
-
     const { DISCONNECT, CONNECT } = admin.events;
 
     admin.on(CONNECT, e => logger.info(`kafka Admin connected ${e.timestamp}: ${e}`));
@@ -194,6 +190,8 @@ const connectAdmin = async () => {
             }
         });
     });
+
+    await admin.connect();
 
     return admin;
 };
