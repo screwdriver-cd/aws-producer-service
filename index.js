@@ -96,7 +96,7 @@ const connect = async () => {
         producer.on(CONNECT, e => logger.info(`kafka Broker connected ${e.timestamp}: ${e}`));
         producer.on(DISCONNECT, e => logger.info(`kafka Broker disconnected ${e.timestamp}: ${e}`));
 
-        errorTypes.map(type => {
+        errorTypes.forEach(type => {
             return process.on(type, async () => {
                 try {
                     logger.error(`process.on ${type}`);
@@ -109,7 +109,7 @@ const connect = async () => {
             });
         });
 
-        signalTraps.map(type => {
+        signalTraps.forEach(type => {
             return process.once(type, async () => {
                 try {
                     await producer.disconnect();
@@ -171,7 +171,7 @@ const connectAdmin = async () => {
     admin.on(CONNECT, e => logger.info(`kafka Admin connected ${e.timestamp}: ${e}`));
     admin.on(DISCONNECT, e => logger.info(`kafka Admin disconnected ${e.timestamp}: ${e}`));
 
-    errorTypes.map(type => {
+    errorTypes.forEach(type => {
         return process.on(type, async () => {
             try {
                 logger.error(`process.on ${type}`);
@@ -184,7 +184,7 @@ const connectAdmin = async () => {
         });
     });
 
-    signalTraps.map(type => {
+    signalTraps.forEach(type => {
         return process.once(type, async () => {
             try {
                 await admin.disconnect();
