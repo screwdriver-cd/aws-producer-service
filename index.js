@@ -42,6 +42,31 @@ const getSecretsValue = async _config => {
     }
 };
 
+/**
+ * Returns an instance of the Kafka class
+ * @returns The kafka object
+ */
+async function getKafkaObject() {
+    const secretsStr = await getSecretsValue(kafkaConfig);
+
+    const secrets = JSON.parse(secretsStr);
+    const brokersList = kafkaConfig.hosts.split(',');
+
+    const kafka = new Kafka({
+        logLevel: logLevel.ERROR,
+        brokers: brokersList,
+        clientId: kafkaConfig.clientId,
+        ssl: true,
+        sasl: {
+            mechanism: kafkaConfig.sasl.mechanism,
+            username: secrets.username,
+            password: secrets.password
+        }
+    });
+
+    return kafka;
+}
+
 const errorTypes = ['unhandledRejection', 'uncaughtException'];
 const signalTraps = ['SIGTERM', 'SIGINT', 'SIGUSR2'];
 
@@ -50,54 +75,26 @@ const createMessage = msg => ({
     value: JSON.stringify(msg)
 });
 
-let producer;
 /**
  * Connects to a Kafka client instance
- * @param {Boolean} connectAdmin Flag to connect as admin
- * @param {Object} config The config object
  * @returns Producer promise object
  */
-const connect = async (connectAdmin, producerConfig) => {
-    // use config from parameters if available
-    const _config = producerConfig || kafkaConfig;
-
-    if (!_config.enabled) {
+const connect = async () => {
+    if (!kafkaConfig.enabled) {
         return null;
     }
-    if (producer) {
-        return producer;
-    }
 
-    const secretsStr = await getSecretsValue(_config);
-
-    const secrets = JSON.parse(secretsStr);
-    const brokersList = _config.hosts.split(',');
-
-    const kafka = new Kafka({
-        logLevel: logLevel.ERROR,
-        brokers: brokersList,
-        clientId: _config.clientId,
-        ssl: true,
-        sasl: {
-            mechanism: _config.sasl.mechanism, // scram-sha-256 or scram-sha-512 or plain
-            username: secrets.username,
-            password: secrets.password
-        }
-    });
+    const kafka = await getKafkaObject();
 
     try {
-        if (connectAdmin) {
-            const admin = kafka.admin();
+        const producer = kafka.producer();
 
-            await admin.connect();
-            logger.info('kafka Broker connected with Admin privileges');
-
-            return admin;
-        }
-
-        producer = kafka.producer();
         await producer.connect();
-        logger.info('kafka Broker connected');
+
+        const { DISCONNECT, CONNECT } = producer.events;
+
+        producer.on(CONNECT, e => logger.info(`kafka Broker connected ${e.timestamp}: ${e}`));
+        producer.on(DISCONNECT, e => logger.info(`kafka Broker disconnected ${e.timestamp}: ${e}`));
 
         errorTypes.map(type => {
             return process.on(type, async () => {
@@ -131,13 +128,48 @@ const connect = async (connectAdmin, producerConfig) => {
 };
 
 /**
+ * sends a message to a kafka topic,
+ * call the connect method to get producer obj
+ * @param {Object} producer the producer object
+ * @param {Object} data the data object
+ * @param {String} topic the topic name
+ */
+const sendMessage = async (producer, data, topic) => {
+    const { job, buildConfig } = data;
+    // after the produce has connected, we start start sending messages
+
+    try {
+        logger.info(`publishing msg ${job}:${buildConfig.buildId} to kafka topic:${topic}`);
+        await producer.connect();
+        await producer.send({
+            topic,
+            compression: CompressionTypes.GZIP,
+            acks: 1,
+            messages: [createMessage(data)]
+        });
+        logger.info(`successfully published msg id ${job}:${buildConfig.buildId} -> topic ${topic}`);
+    } catch (e) {
+        logger.error(
+            `Publishing message ${buildConfig.buildId} to topic ${topic} failed ${e.message}: stack: ${e.stack}`
+        );
+    }
+};
+
+/**
  * Connects to a Kafka client instance as admin
  * @returns Admin promise object
  */
 const connectAdmin = async () => {
-    const admin = connect(true);
+    const kafka = await getKafkaObject();
 
-    logger.info('kafka Broker Admin connected');
+    const admin = kafka.admin();
+
+    await admin.connect();
+
+    const { DISCONNECT, CONNECT } = admin.events;
+
+    admin.on(CONNECT, e => logger.info(`kafka Admin connected ${e.timestamp}: ${e}`));
+    admin.on(DISCONNECT, e => logger.info(`kafka Admin disconnected ${e.timestamp}: ${e}`));
 
     errorTypes.map(type => {
         return process.on(type, async () => {
@@ -165,32 +197,10 @@ const connectAdmin = async () => {
 
     return admin;
 };
-/**
- * sends a message to a kafka topic
- * @param {Object} data the data object
- * @param {String} topic the topic name
- */
-const sendMessage = async (data, topic) => {
-    const { job, buildConfig } = data;
-    // after the produce has connected, we start start sending messages
-
-    try {
-        logger.info(`publishing msg ${job}:${buildConfig.buildId} to kafka topic:${topic}`);
-        await producer.send({
-            topic,
-            compression: CompressionTypes.GZIP,
-            acks: 1,
-            messages: [createMessage(data)]
-        });
-        logger.info(`successfully published msg id ${job}:${buildConfig.buildId} -> topic ${topic}`);
-    } catch (e) {
-        logger.error(`Publishing message ${buildConfig.buildId} to topic ${topic} failed ${e.message}`);
-    }
-};
 
 /**
  * gets kafka topic metadata
- * @param {Object} admin The admin object after calling connect
+ * @param {Object} admin The admin object after calling connectAdmin
  * @param {*} topic      The name of the topic
  * @returns topic metadata
  */
@@ -204,7 +214,7 @@ const getTopicMetadata = async (admin, topic) => {
 
 /**
  * creates a kafka topic in the cluster
- * @param {Object} admin The admin object after calling connect
+ * @param {Object} admin The admin object after calling connectAdmin
  * @param {String} topic The name of the topic to be created
  */
 const createTopic = async (admin, topic) => {
@@ -215,7 +225,7 @@ const createTopic = async (admin, topic) => {
             await admin.createTopics({ topics: [{ topic }] });
         }
     } catch (e) {
-        logger.error(`Error creating ${topic} ${e.message}`);
+        logger.error(`Error creating ${topic} ${e.message}: stack: ${e.stack}`);
     }
 
     await admin.disconnect();

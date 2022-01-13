@@ -28,7 +28,12 @@ describe('index', () => {
         function kafkaInstanceMock() {
             return {
                 producer: () => {
-                    return { connect: sinon.stub(), send: sinon.stub() };
+                    return {
+                        connect: sinon.stub(),
+                        send: sinon.stub(),
+                        events: { DISCONNECT: 'DISCONNECT', CONNECT: 'CONNECT' },
+                        on: sinon.stub()
+                    };
                 },
                 admin: () => {
                     return {
@@ -36,7 +41,9 @@ describe('index', () => {
                         createTopics: sinon.stub().resolves(),
                         listTopics: sinon.stub().returns([]),
                         fetchTopicMetadata: sinon.stub().returns(),
-                        disconnect: sinon.stub().resolves()
+                        disconnect: sinon.stub().resolves(),
+                        events: { DISCONNECT: 'DISCONNECT', CONNECT: 'CONNECT' },
+                        on: sinon.stub()
                     };
                 }
             };
@@ -110,21 +117,14 @@ describe('index', () => {
             assert.calledOnce(producer.connect);
         });
     });
-    describe('connect-use config from params', () => {
-        it('connects to a kafka instance as a consumer', async () => {
-            const producer = await index.connect(false, { enabled: false });
-
-            assert.isNull(producer);
-        });
-    });
     describe('sendMessage', () => {
         it('sends a message to a kafka instance as a consumer', async () => {
             const producer = await index.connect();
             const msg = { buildConfig: { buildId: 123 }, job: 'start' };
 
-            await index.sendMessage(msg, topicName);
+            await index.sendMessage(producer, msg, topicName);
 
-            assert.calledOnce(producer.connect);
+            assert.calledTwice(producer.connect);
             assert.calledOnce(producer.send);
         });
     });
