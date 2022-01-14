@@ -181,7 +181,7 @@ const connectAdmin = async () => {
 };
 
 /**
- * gets kafka topic metadata
+ * gets kafka topic metadata and disconnects the admin connection
  * @param {Object} admin The admin object after calling connectAdmin
  * @param {*} topic      The name of the topic
  * @returns topic metadata
@@ -201,7 +201,7 @@ const getTopicMetadata = async (admin, topic) => {
 };
 
 /**
- * creates a kafka topic in the cluster
+ * creates a kafka topic in the cluster and disconnects the admin connection
  * @param {Object} admin The admin object after calling connectAdmin
  * @param {String} topic The name of the topic to be created
  */
