@@ -122,7 +122,7 @@ describe('index', () => {
             const producer = await index.connect();
             const msg = { buildConfig: { buildId: 123 }, job: 'start' };
 
-            await index.sendMessage(producer, msg, topicName);
+            await index.sendMessage(producer, msg, topicName, 'msg1');
 
             assert.calledTwice(producer.connect);
             assert.calledOnce(producer.send);

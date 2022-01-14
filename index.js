@@ -148,12 +148,10 @@ const connect = async () => {
  * @param {Object} data the data object
  * @param {String} topic the topic name
  */
-const sendMessage = async (producer, data, topic) => {
-    const { job, buildConfig } = data;
+const sendMessage = async (producer, data, topic, messageId) => {
     // after the produce has connected, we start start sending messages
-
     try {
-        logger.info(`publishing msg ${job}:${buildConfig.buildId} to kafka topic:${topic}`);
+        logger.info(`publishing msg ${messageId} to kafka topic:${topic}`);
         await producer.connect();
         await producer.send({
             topic,
@@ -161,11 +159,9 @@ const sendMessage = async (producer, data, topic) => {
             acks: 1,
             messages: [createMessage(data)]
         });
-        logger.info(`successfully published msg id ${job}:${buildConfig.buildId} -> topic ${topic}`);
+        logger.info(`successfully published message ${messageId} -> topic ${topic}`);
     } catch (e) {
-        logger.error(
-            `Publishing message ${buildConfig.buildId} to topic ${topic} failed ${e.message}: stack: ${e.stack}`
-        );
+        logger.error(`publishing message ${messageId} to topic ${topic} failed ${e.message}: stack: ${e.stack}`);
     }
 };
 
