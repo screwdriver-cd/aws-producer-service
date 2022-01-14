@@ -143,6 +143,7 @@ describe('index', () => {
             await index.createTopic(admin, topicName);
 
             assert.calledOnce(admin.connect);
+            assert.calledOnce(admin.listTopics);
             assert.calledOnce(admin.createTopics);
             assert.calledOnce(admin.disconnect);
         });

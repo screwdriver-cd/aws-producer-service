@@ -5,7 +5,13 @@ const { SecretsManagerClient, GetSecretValueCommand } = require('@aws-sdk/client
 const config = require('config');
 const logger = require('screwdriver-logger');
 const kafkaConfig = config.get('kafka');
-
+/**
+ * Client type constant
+ */
+const CLIENT_TYPE = {
+    ADMIN: 'admin',
+    PRODUCER: 'producer'
+};
 /**
  * Gets the secret value from SecretsManager
  * @param {Object} _config the config object
@@ -77,9 +83,10 @@ const createMessage = msg => ({
 
 /**
  * Connects to a Kafka client instance
- * @returns Producer promise object
+ * @param {String} clientType type of kafka instance admin|producer
+ * @returns Producer/Admin promise object
  */
-const connect = async () => {
+const createConnection = async clientType => {
     if (!kafkaConfig.enabled) {
         return null;
     }
@@ -87,18 +94,18 @@ const connect = async () => {
     const kafka = await getKafkaObject();
 
     try {
-        const producer = kafka.producer();
-        const { DISCONNECT, CONNECT } = producer.events;
+        const client = clientType === CLIENT_TYPE.ADMIN ? kafka.admin() : kafka.producer();
+        const { DISCONNECT, CONNECT } = client.events;
 
-        producer.on(CONNECT, e => logger.info(`kafka Broker connected ${e.timestamp}: ${e}`));
-        producer.on(DISCONNECT, e => logger.info(`kafka Broker disconnected ${e.timestamp}: ${e}`));
+        client.on(CONNECT, e => logger.info(`kafka Broker ${clientType} connected ${e.timestamp}: ${e}`));
+        client.on(DISCONNECT, e => logger.info(`kafka Broker ${clientType} disconnected ${e.timestamp}: ${e}`));
 
         errorTypes.forEach(type => {
             return process.on(type, async () => {
                 try {
                     logger.error(`process.on ${type}`);
-                    await producer.disconnect();
-                    logger.info('kafka Broker disconnected');
+                    await client.disconnect();
+                    logger.info(`kafka Broker ${clientType} disconnected`);
                     process.exit(0);
                 } catch (_) {
                     process.exit(1);
@@ -109,21 +116,29 @@ const connect = async () => {
         signalTraps.forEach(type => {
             return process.once(type, async () => {
                 try {
-                    await producer.disconnect();
-                    logger.info('kafka Broker disconnected');
+                    await client.disconnect();
+                    logger.info(`kafka Broker ${clientType} disconnected`);
                 } finally {
                     process.kill(process.pid, type);
                 }
             });
         });
 
-        await producer.connect();
+        await client.connect();
 
-        return producer;
+        return client;
     } catch (err) {
         logger.error('kafka broker connection failure', err);
         throw err;
     }
+};
+
+/**
+ * Connects to a Kafka client instance as producer
+ * @returns Producer promise object
+ */
+const connect = async () => {
+    return createConnection(CLIENT_TYPE.PRODUCER);
 };
 
 /**
@@ -159,41 +174,7 @@ const sendMessage = async (producer, data, topic) => {
  * @returns Admin promise object
  */
 const connectAdmin = async () => {
-    const kafka = await getKafkaObject();
-
-    const admin = kafka.admin();
-    const { DISCONNECT, CONNECT } = admin.events;
-
-    admin.on(CONNECT, e => logger.info(`kafka Admin connected ${e.timestamp}: ${e}`));
-    admin.on(DISCONNECT, e => logger.info(`kafka Admin disconnected ${e.timestamp}: ${e}`));
-
-    errorTypes.forEach(type => {
-        return process.on(type, async () => {
-            try {
-                logger.error(`process.on ${type}`);
-                await admin.disconnect();
-                logger.info('kafka Broker Admin disconnected');
-                process.exit(0);
-            } catch (_) {
-                process.exit(1);
-            }
-        });
-    });
-
-    signalTraps.forEach(type => {
-        return process.once(type, async () => {
-            try {
-                await admin.disconnect();
-                logger.info('kafka Broker Admin disconnected');
-            } finally {
-                process.kill(process.pid, type);
-            }
-        });
-    });
-
-    await admin.connect();
-
-    return admin;
+    return createConnection(CLIENT_TYPE.ADMIN);
 };
 
 /**
