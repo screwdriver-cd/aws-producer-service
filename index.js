@@ -72,12 +72,19 @@ async function getKafkaObject() {
 
     return kafka;
 }
-
+// Error types constants
 const errorTypes = ['unhandledRejection', 'uncaughtException'];
+// Signal types constants
 const signalTraps = ['SIGTERM', 'SIGINT', 'SIGUSR2'];
 
-const createMessage = msg => ({
-    key: `key-${msg.buildConfig.buildId}`,
+/**
+ *
+ * @param {Object} msg the message object
+ * @param {String} msgId The message id key
+ * @returns
+ */
+const createMessage = (msg, msgId) => ({
+    key: `key-${msgId}`,
     value: JSON.stringify(msg)
 });
 
@@ -157,7 +164,7 @@ const sendMessage = async (producer, data, topic, messageId) => {
             topic,
             compression: CompressionTypes.GZIP,
             acks: 1,
-            messages: [createMessage(data)]
+            messages: [createMessage(data, messageId)]
         });
         logger.info(`successfully published message ${messageId} -> topic ${topic}`);
     } catch (e) {
@@ -180,9 +187,15 @@ const connectAdmin = async () => {
  * @returns topic metadata
  */
 const getTopicMetadata = async (admin, topic) => {
-    const metadata = await admin.fetchTopicMetadata({ topics: [topic] });
+    let metadata;
 
-    await admin.disconnect();
+    try {
+        metadata = await admin.fetchTopicMetadata({ topics: [topic] });
+    } catch (e) {
+        logger.error(`Error fetching topic: ${topic} metadata ${e.message}: stack: ${e.stack}`);
+    } finally {
+        await admin.disconnect();
+    }
 
     return metadata;
 };
@@ -201,9 +214,9 @@ const createTopic = async (admin, topic) => {
         }
     } catch (e) {
         logger.error(`Error creating ${topic} ${e.message}: stack: ${e.stack}`);
+    } finally {
+        await admin.disconnect();
     }
-
-    await admin.disconnect();
 };
 
 module.exports = {
