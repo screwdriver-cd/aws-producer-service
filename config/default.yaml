@@ -1,14 +1,14 @@
 kafka:
   # flag for kafka broker
-  enabled: true
+  enabled: KAFKA_ENABLED
   # kafka brokers list
   hosts: KAFKA_BROKERS_LIST
   # sasl options
   sasl:
     # sasl mechanism
-    mechanism: scram-sha-512
+    mechanism: SASL_MECHANISM
     # secret id for sasl/scram
-    secretId: fakesecret
+    secretId: SASL_AWS_SECRET_ID
   # client id of the producer
   clientId: sd-producer
   # Amazon access key
