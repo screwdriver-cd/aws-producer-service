@@ -1,0 +1,9 @@
+<testExecutions version="1">
+<file path="test/index.test.js">
+<testCase name="connect: connects to a kafka instance as a consumer" duration="3"/>
+<testCase name="sendMessage: sends a message to a kafka instance as a consumer" duration="5"/>
+<testCase name="connectAdmin: connects to a kafka instance as an admin" duration="4"/>
+<testCase name="createTopic: creates a topic in kafka instance as an admin" duration="3"/>
+<testCase name="getTopicMetadata: gets a topic metadata from kafka instance as an admin" duration="2"/>
+</file>
+</testExecutions>

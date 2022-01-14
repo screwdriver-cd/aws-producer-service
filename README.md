@@ -55,11 +55,12 @@ kafka:
 ```
 
 ## Methods
+#### Producer Methods
 #### `connect`
 ##### Expected Outcome
-Connects as a client instance to ther kafka broker based on the specified configuration
+Connects as a client instance to the kafka broker based on the specified configuration
 ##### Expected Return
-A Promise that resolves to a kakfa producer object.
+A Promise that resolves to a Kafka producer object.
 
 #### `sendMessage`
 ##### Expected Outcome
@@ -67,8 +68,37 @@ Sends a message to a kafka topic.
 ##### Required Parameters
 | Parameter        | Type  |  Description |
 | :-------------   | :---- | :-------------|
+| producer        | Object | The producer object after calling connect() |
 | data        | Object | The message data object |
 | topic | String | The name of the topic |
+| messageId | String | The id of the message
+
+#### Admin Methods
+#### `connectAdmin`
+##### Expected Outcome
+Connects as a client instance to the kafka broker based as an admin with elevated permissions on the specified configuration
+##### Expected Return
+A Promise that resolves to a Kafka admin object.
+
+#### `createTopic`
+##### Expected Outcome
+Creates a kafka topic and disconnects the admin connection.
+##### Required Parameters
+| Parameter        | Type  |  Description |
+| :-------------   | :---- | :-------------|
+| admin        | Object | The admin object after calling connectAdmin() |
+| topic | String | The name of the topic |
+
+#### `getTopicMetadata`
+##### Expected Outcome
+Gets kafka metadata for the give kafka topic and disconnects the admin connection.
+##### Required Parameters
+| Parameter        | Type  |  Description |
+| :-------------   | :---- | :-------------|
+| admin        | Object | The admin object after calling connectAdmin() |
+| topic | String | The name of the topic |
+##### Expected Return
+A Promise that resolves to a Kafka topic metadata object.
 
 ## Testing
 
