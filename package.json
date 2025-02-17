@@ -1,6 +1,6 @@
 {
   "name": "screwdriver-aws-producer-service",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Screwdriver AWS Integration Producer Service to publish messages",
   "main": "index.js",
   "scripts": {
@@ -31,16 +31,16 @@
     ]
   },
   "dependencies": {
-    "@aws-sdk/client-secrets-manager": "^3.34.0",
-    "config": "^3.3.6",
-    "kafkajs": "^1.15.0",
-    "screwdriver-logger": "^2.0.0"
+    "@aws-sdk/client-secrets-manager": "^3.749.0",
+    "config": "^3.3.12",
+    "kafkajs": "^1.16.0",
+    "screwdriver-logger": "^3.0.0"
   },
   "devDependencies": {
     "chai": "^4.3.7",
     "coveralls": "^3.1.1",
-    "eslint": "^8.28.0",
-    "eslint-config-screwdriver": "^7.0.0",
+    "eslint": "^8.57.0",
+    "eslint-config-screwdriver": "^8.0.0",
     "mocha": "^10.1.0",
     "mocha-multi-reporters": "^1.5.1",
     "mocha-sonarqube-reporter": "^1.0.2",
